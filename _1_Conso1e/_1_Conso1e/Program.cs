@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -681,15 +682,192 @@ namespace _1_Conso1e
         8.  АВЛ-ДЕРЕВО  -   сбалансированное по высоте двоичное дерево
 
         //------------------------------------------------------------------------
-
-
+        */
+        #endregion
+        //------------------------------------------------------------------------
+        #region C# Professional
+        /* 
+        //------------------------------------------------------------------------
+        //  ПОЛЬЗОВАТЕЛЬСКИЕ КОЛЛЕКЦИИ
+        Итератор    -   патерн, который позволяет работать с коллекцией
+        Все коллекции в .NET основаны на интерфейсах IEnumerable и IEnumerator
         
+        IEnumerable:
+            IEnumerator GetEnumerator() -   возвращает ссылку на объект интерфейса
+        IEnumerator:
+            object Current{}    -   Возвращает текущий элемент коллекции
+            bool MoveNext() -   Перемещает курсор на следующий элемент коллекции
+            void Reset()    -   Возврат курсора в начало коллекции
+        IEnumerable<T>  -   для универсальности 
+
+        foreach =   //  Для его работы нужно в коллекции либо определить вышесказанные интерфейсы, или создать одноименные открытые методы.
+                    //  Компилятор преобразует вот в это:
+            var enumerator = ((IEnumerable)collection).GetEnumerator();
+            while(enumerator.MoveNext())
+            {
+                var element = (Element)enumerator.Current;
+                Console.WriteLine(element.FieldA, element.FieldB);
+            }
+
+            ИЛИ можно использовать ключевое слово yield, переписав один интерфейс
+            public IEnumerator GetEnumerator()
+            {
+                while (true)
+                {
+                    if (position < elements.Length - 1)
+                    {
+                        position++;
+                        yeild return elements[position];
+                    }
+                    else
+                    {
+                        position = -1;
+                        yeild break;
+                    }
+                }
+            }
+            
+        ICollection:    //  Дополнительные удобства для пользовательской коллекции
+            int Count {}    -   Скажет сколько элементов в коллекции
+            bool IsSynchronized {}  -   Скажет возможна ли синхронизация для многопотока
+            object SyncRoot {}  -   Объект синхронизации доступа
+            void CopyTo()   -   Копирование элементов коллекции в массив начиная с индекса
+        IColection<T>   -   параметризированный интерфейс, позволяющий добавлять, очищать, искать, копировать и удалять элементы коллекции
+
+        IList   -   Списочный интерфейс
+            
+        //------------------------------------------------------------------------
+        //  СИСТЕМНЫЕ КОЛЛЕКЦИИ
+        1.  ARRAYLIST   -   Это object [] Может хранить любой объект, но при итерации все упаковывается в object
+            var arrlist = new ArrayList() { "Peu!", "Mew!" };
+            arrlist.Add("Chponk!");
+            foreach (var item in arrlist)   //  При попытке изменить коллекцию через foreach будет исключение, так как при переборе коллекции IEnumerator проверяет свою версию и версию коллекции
+            {
+                //arrlist.Remove(item);   //  Ошибка
+                Console.WriteLine(item);
+            }
+            for (int i = 0; i < arrlist.Count; i++) //  Для изменения коллекции надо пользоваться for
+            {
+                arrlist[i] = "b";
+            }
+            arrlist.Sort(); //  Qick sort
+            arrlist.Sort(new CustomComparer()); //  Custom sort
+            class CustomComparer : IComparer { }  //  Создаем класс наследник интерфейса сортировки и реализуем нужную логику
+        
+        2.  QUEUE   -   Очередь FIFO
+            Queue qu = new Queue();
+            qu.Enqueue("First");
+            qu.Enqueue("Second");
+            qu.Enqueue("Third");
+            while (qu.Count > 0)
+            {
+                Console.WriteLine(qu.Dequeue());  //  Перебор с удалением
+            }
+            var el = qu.Peek(); //  Просмотр первого в очереди без его удаления
+            Console.WriteLine(el);
+
+        3.  STACK   -   Стек LIFO
+            Stack st = new Stack();
+            st.Push(1);
+            st.Push(2);
+            st.Push(3);
+            while (st.Count > 0)
+            {
+                Console.WriteLine(st.Pop());    //  Просмотр с удалением
+            }
+            var el = st.Peek();
+            Console.WriteLine(el);  //  Просмотр без удаления
+
+        4.  HASHTABLE   -   словарь, ключ-значение
+            Hashtable ht = new Hashtable();
+            ht.Add("abc@msi.com","Bob Thornton");
+            //ht.Add("abc@msi.com","Matt Daimon");   //  Ошибка, ключи должны быть уникальные
+            ht["abc@msi.com"] = "Clod Jirough"; //  Если ключ сущетвует-изменение значения...
+            ht["orrr@msi.com"] = "Ben Stievens";    //  ...если ключа нет-создание нового ключа-значения
+            foreach (DictionaryEntry item in ht)    //  Приводим к объекту и вызываем свойство
+            {
+                Console.WriteLine(item.Value);
+            }
+            foreach (var item in ht.Values) //  Аналогично
+            {
+                Console.WriteLine(item);
+            }
+            foreach (var item in ht.Keys) //  По ключам
+            {
+                Console.WriteLine(item);
+            }
+            //  Если в таблицу добавлять два экземпляра класса, даже если из поля и состояния идентичны, все равно это будут два разных объекта, поэтому, если нужна сложная логика сравнения, следует в данных классах переписать методы Equals() и GetHashCode()
+            MyClass m = new MyClass("John");
+            MyClass m2 = new MyClass("John");
+            (m==m2) //  false
+
+        5.  LIST DICTIONARY -   принцип обчного массива, подходит для хранения небольшого количества элементов (до 10)
+            ListDictionary ld = new ListDictionary();
+            
+        6.  HYBRID DICTIONARY    -   гибрид между hashtable и listdictionary, когда неизвестно сколько будет элеметов. Сама подстрваивается
+            HybridDictionary hd = new HybridDictionary();
+
+        7.  ORDERED DICTIONARY  -   словарь с размещением в порядке добавления
+            OrderedDictionary od = new OrderedDictionary {
+                {"avb","BOB" },
+                {"ere","MIKE" },
+                {"zzs","TOM" },
+            };
+            foreach (DictionaryEntry item in od)
+            {
+                Console.WriteLine(item.Key+" - "+item.Value);
+            }
+
+        7.  SORTED LIST -   словарь, отсортированный по ключу
+            SortedList sl = new SortedList();
+            sl[40] ="Qutie";
+            sl[56] = "Wizz";
+            sl[5] = "Bob";
+            sl[1] = "Ann";
+            foreach (DictionaryEntry item in sl)
+            {
+                Console.WriteLine(item.Key+" - "+item.Value);
+            }
+
+        *Specialized*
+        *8. BIT ARRAY   -   битовый массив для битовых данных. Можно мутить побитовые операции с массивом
+            BitArray b = new BitArray(3);
+            b[0] = true;
+            b[1] = false;
+            b[2] = true;
+            b.Length = 4;   //  Можно менять длину
+            b[3] = false;
+            foreach (var item in b)
+            {
+                Console.WriteLine(item);
+            }
+            BitArray b2 = new BitArray (4);
+            b2[0] = false;
+            b2[1] = false;
+            b2[2] = true;
+            b2[3] = false;
+
+            var xorb_b2 = b.Xor(b2);    //  Побитовые операции с двумя массивами
+
+        *9. BITVECTOR32 -  для работы с единичным 32 битным числом. Хорош для создания побитовых масок и для упаковки битов
+        
+        *10.NANEVALUECOLLECTION -   как словарь, только можно под ОДНИМ ключом хранить НЕСКОЛЬКО значений
+            NameValueCollection nvc = new NameValueCollection {
+                { "Key","Info"},
+                { "Key","Info with same key"}
+            };
+            foreach (var item in nvc.GetValues("Key"))
+            {
+                Console.WriteLine(item);
+            }
 
         //------------------------------------------------------------------------
 
 
-
-
+        //------------------------------------------------------------------------
+        //------------------------------------------------------------------------
+        //------------------------------------------------------------------------
+        //------------------------------------------------------------------------
         */
         #endregion
         //------------------------------------------------------------------------
@@ -794,11 +972,24 @@ namespace _1_Conso1e
             //....
             }
 
+            string a = "Ab";
+            string b = "Ab";
+            Console.WriteLine(a.GetHashCode()+"  "+b.GetHashCode());    //  Одинаковые хеши
+            object A = new object();
+            object B = new object();
+            Console.WriteLine(A.GetHashCode().ToString()+"  "+B.GetHashCode().ToString());  //  Два разных объекта - два разных хэша
+            object C = new object();
+            A = B = C;  //  Скопировали по ссылке на С
+            Console.WriteLine(A.GetHashCode().ToString()+"  "+B.GetHashCode().ToString());  //  Два одинаковых объкта - два одинаковых хеша
+            //  В более сложных классах и структурах возможно переопределение методов класса object Equals() и GetHashCode() для переопределения логики сравнения объектов
+
+
 
             */
             #endregion
             //------------------------------------------------------------------------
-            
+
+
             //------------------------------------------------------------------------
             //  Main
             //  Main
