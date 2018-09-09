@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -851,7 +852,7 @@ namespace _1_Conso1e
 
         *9. BITVECTOR32 -  для работы с единичным 32 битным числом. Хорош для создания побитовых масок и для упаковки битов
         
-        *10.NANEVALUECOLLECTION -   как словарь, только можно под ОДНИМ ключом хранить НЕСКОЛЬКО значений
+        *10.NAMEVALUECOLLECTION -   как словарь, только можно под ОДНИМ ключом хранить НЕСКОЛЬКО значений
             NameValueCollection nvc = new NameValueCollection {
                 { "Key","Info"},
                 { "Key","Info with same key"}
@@ -862,15 +863,100 @@ namespace _1_Conso1e
             }
 
         //------------------------------------------------------------------------
+        //  ПОТОКИ ВВОДА-ВЫВОДА
+        1.  Директории и файлы
+            var dir = new DirectoryInfo(@"C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects");  //  Связали с директорией
+            if (dir.Exists) //  Если директория существует
+            {
+                Console.WriteLine(dir.FullName);    //  Разное инфо о деректории
+            }
+            var dircur = new DirectoryInfo(@".");   //  Директория в которой выполнеяется EXE
+            FileInfo[] files = dircur.GetFiles("*.txt");    //  Получаем массив с файлами расширения txt
+            dir.CreateSubdirectory("#Subdir");   //  Создали поддиректорию в текущем месте
+            dir.CreateSubdirectory(@"#Subdir\Anothersubdir");   //  Создали поддиректорию по адресу
+            Directory.Delete(@"C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\#Subdir\Anothersubdir");   //  Удалить директорию
+            Directory.Delete(@"C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\#Subdir", true);   //  Удалить директорию со влеженными подкаталогами
 
+            var file = new FileInfo(@"C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\#Subdir\file.txt");  //  По адресу прявязались к файлу
+            FileStream stream = file.Create();  //  Открыли поток и закинули
+            FileStream stream = file.Open(FileMode.OpenOrCreate, FileAccess.Read, FileShare.None);  //  Создание с параметрами
+            stream.Close(); //  Закрыли поток
+            Console.WriteLine(file.FullName + " " + file.CreationTime);
+            file.Delete();  //  Удалили файл
+
+            StreamWriter writer = file.CreateText();    //  Создали поток записи и сзязали с файлом
+            writer.WriteLine("First string");   //  Пишем...
+            writer.WriteLine("Second string");
+            for (int i = 0; i < 5; i++)
+            {
+                writer.Write(i.ToString());
+                writer.Write(writer.NewLine);   //  Новая строка
+            }
+            writer.Close(); //  Закрыли поток
+
+            FileStream file_2 = new FileStream(@"C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\#Subdir\file_2.txt", FileMode.OpenOrCreate, FileAccess.ReadWrite); //  Еще один файл параметризированным способом
+            StreamWriter writer_2 = new StreamWriter(file_2, Encoding.GetEncoding(1251));    //  Еще один параметризированный поток
+            writer_2.WriteLine("Hi!");  //  Пишем в файл
+            writer_2.Close();
+            File.WriteAllText(@"C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\#Subdir\file_2.txt","Hello World");   //  Быстрый способ записи в файл
+            File.AppendAllText(@"C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\#Subdir\file_2.txt", "\nHello World add+");   //  Дозапись в файл
+
+            StreamReader reader = File.OpenText(@"C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\#Subdir\file.txt");   //  Читаем файл
+            string input;
+            while ((input = reader.ReadLine()) != null) //  Читваем пока не пусто
+            {
+                Console.WriteLine(input);
+            }
+            reader.Close();
+
+            var file = new FileInfo(@"C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\#Subdir\file.txt"); //  Берем файл
+            file.CopyTo(@"C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\#Subdir\Anothersubdir\filecopy.txt");   //  И копируем его
+
+        2.  Статический класс Path для работы с путями файловой системы.
+            string path = @"C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\#Subdir\file.txt";
+            Console.WriteLine(path);
+            Console.WriteLine(Path.GetExtension(path)); //  Вернет толко расширение файла
+
+        3.  FileSystemWatcher    -   отслеживание изменения в системе
+            var watcher = new FileSystemWatcher {Path = @"C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\#Subdir" }; //  Создали наблюдателя
+            watcher.Created += new FileSystemEventHandler(delegate { Console.WriteLine("Добавлен файл!"); });   //  Подписали лямбда-обработчик на событие создания в директории нового файла
+            watcher.EnableRaisingEvents = true; //  Включили наблюдение
+
+        4.  MemoryStream    -   поток-накопитель, в который накидываем данный, а потом все вместе можно обрабатывать
+            var memory = new MemoryStream();    //  Создали поток-накопитель
+            var writer = new StreamWriter(memory);  //  Поток записи
+            writer.Write("[{0}] ","info");  // Через поток записи накидываем в память
+            writer.Write("[{0}] ", "info++");   //  Параметризированный ввод
+            writer.Write("[{0}] ", "info***");
+            writer.Flush(); //  Подчищаем
+            memory.Position = 0;    //  Курсор в начало
+            string res = System.Text.Encoding.UTF8.GetString(memory.ToArray()); //  Поток в массив и в строку
+            Console.WriteLine(res);
+            writer.Close();
+            memory.Close();
+        
+        5.  BufferStream    -   буферизованный поток-накопитель, накапливает данные и при заполнении буфера возможны действия(запись в файл)
+            FileStream file = File.Create(@"Dir\log.txt");
+            BufferedStream buffer = new BufferedStream(file);
+            StreamWriter write = new StreamWriter(buffer);
+            write.WriteLine("some...");
+            //...
+            buffer.Position = 0;
+            write.Close();
+            buffer.Close();
+
+        6.  GZipStream  -   компрессор-упаковщик в zip файлы
 
         //------------------------------------------------------------------------
+        
+            
         //------------------------------------------------------------------------
         //------------------------------------------------------------------------
         //------------------------------------------------------------------------
         */
         #endregion
         //------------------------------------------------------------------------
+
         static void Main(string[] args)
         {
             #region //Main comments
@@ -989,7 +1075,7 @@ namespace _1_Conso1e
             #endregion
             //------------------------------------------------------------------------
 
-
+            
             //------------------------------------------------------------------------
             //  Main
             //  Main
