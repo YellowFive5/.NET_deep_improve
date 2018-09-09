@@ -3,9 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -893,6 +895,7 @@ namespace _1_Conso1e
                 writer.Write(writer.NewLine);   //  Новая строка
             }
             writer.Close(); //  Закрыли поток
+            Writer.WriteLine("text",true);  //  Дописываем
 
             FileStream file_2 = new FileStream(@"C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\#Subdir\file_2.txt", FileMode.OpenOrCreate, FileAccess.ReadWrite); //  Еще один файл параметризированным способом
             StreamWriter writer_2 = new StreamWriter(file_2, Encoding.GetEncoding(1251));    //  Еще один параметризированный поток
@@ -948,8 +951,77 @@ namespace _1_Conso1e
         6.  GZipStream  -   компрессор-упаковщик в zip файлы
 
         //------------------------------------------------------------------------
-        
+        //  РАБОТА С ТЕКСТОМ
+        1.  System.String
+            //String s = new string('-',20);
+            //string s2 = String.Format("{0}*{1}","aB","bA"); //  Форматированный вид
+            //string s3 = @"C:\folder";   //  Говорим компилятору игнорировать управляющие символы
+            //string s4 = String.Intern(Console.ReadLine());  //  Если данная строка существует в таблице интернирования, возвращается ссылка на нее, чтобы не создавать новую строку
+            //  Можно в пользовательском классе перпопределить метод ToString();
+            //  Или реализовать интерфейс IFormatable
+
+            //  Региональные культуры форматирования даты, времени, температуры, мер и весов.
+            //  RegionInfo.
+            //  CultureInfo.
+            //  IFormattable    -   интерфейс переопределения пользовательского формата вывода
+
+            //  Encoding    -   перекодирование
+
+            //  StringBuilder   -   фабрика строк
+            var builder = new StringBuilder();
+            builder.Append("One-").Append("Two-").Append("Three-"); //  В разы быстрее обычной конкетинации
+            string str = builder.ToString();
+
+        2.  Резулярные выражения    -   формальный язык поиска и манупуляции со строками, основанный на метасимволах
+            System.Text.ReqularExpressions
             
+            МЕТАСИМВОЛЫ - это символы для составления Шаблона поиска.
+            \d  -   Определяет символы цифр. 
+            \D  -   Определяет любой символ, который не является цифрой. 
+            \w  -   Определяет любой символ цифры, буквы или подчеркивания. 
+            \W  -   Определяет любой символ, который не является цифрой, буквой или подчеркиванием. 
+            \s  -   Определяет любой непечатный символ, включая пробел. 
+            \S  -   Определяет любой символ, кроме символов табуляции, новой строки и возврата каретки.
+            .   -   Определяет любой символ кроме символа новой строки. 
+            \.  -   Определяет символ точки.
+ 
+            КВАНТИФИКАТОРЫ - это символы которые определяют, где и сколько раз необходимое вхождение символов может встречаться.
+            ^() -   c начала строки. 
+            ()$ -   с конца строки. 
+            ()+ -   одно и более вхождений подшаблона в строке.  
+            *() -   любое количество
+
+            bool issucess = false;
+            const string pattern = @"\d";   //  Должна быть цифра
+            var reg = new Regex(pattern);   //  Создаем регулярное выражение
+            while (!issucess)   //  Пока не введена цифра не выходим
+            {
+                string input = Console.ReadKey().KeyChar.ToString();    //  Нажимаем клавишу
+                issucess = reg.IsMatch(input);  //  Проверяем
+                if (issucess)
+                    Console.WriteLine("\nВведена цифра, выходим");
+                else
+                    Console.WriteLine("\nВведена НЕ цифра, еще раз...");
+            }
+
+            const string pattern = @"\d+";   //  В строке должна быть хотя бы одна цифра
+            var reg = new Regex(pattern);   //  Регулярное выражение
+            var arr = new[] { "1", "rer4", "ddf" };    //  Массив
+            foreach (var item in arr)   //  Перебираем
+            {
+                if (reg.IsMatch(item))  //  Проходит по условию
+                {
+                    Console.WriteLine("Строки с символами:{0}", item);   //  Выводим
+                }
+            }
+
+            Console.WriteLine(Regex.Replace("334224gfddg",@"\d","+"));  //  Заменяем цифры на +
+            Console.WriteLine(Regex.Replace("Fuck YOU !!!",@"Fuck","****"));  //  Заменяем фрагмент
+            Console.WriteLine(Regex.Replace("12345",@"\d",m=>(int.Parse(m.Value)+1).ToString()));   //  Нашли, в лямбду, прибавили 1
+
+            //  "^[a-z0-9]+$"   -   строка только из букв и цифр
+            //  "fuck|bitch" -   ИЛИ
+
         //------------------------------------------------------------------------
         //------------------------------------------------------------------------
         //------------------------------------------------------------------------
@@ -1075,7 +1147,6 @@ namespace _1_Conso1e
             #endregion
             //------------------------------------------------------------------------
 
-            
             //------------------------------------------------------------------------
             //  Main
             //  Main
