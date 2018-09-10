@@ -10,6 +10,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Configuration;
+using System.Xml;
+using System.Xml.XPath;
 
 namespace _1_Conso1e
 {
@@ -1023,6 +1026,40 @@ namespace _1_Conso1e
             //  "fuck|bitch" -   ИЛИ
 
         //------------------------------------------------------------------------
+        //  КОНФИГУРАЦИЯ, XML, РЕЕСТР
+            //  В App.config прописали настройки в виде ключ-значение
+            NameValueCollection allsettings = ConfigurationManager.AppSettings; //  Создали объект настроек
+            Console.WriteLine(allsettings["First"]);    //  Читаем настройки
+            Console.WriteLine(allsettings[1]);
+            Console.WriteLine(allsettings.Count);
+
+            //  Изменение файлов настроек из приложения
+            var confchange = new XmlDocument(); //  Создали объект документа
+            confchange.Load(@"C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\ITVDN\.NET_deep_improve\_1_Conso1e\_1_Conso1e\App.config"); //  Прописали путь к файлу настроек
+            foreach (var el in confchange.DocumentElement)  //  Пребираем корень
+            {
+                if (!el.GetType().ToString().Equals("System.Xml.XmlComment")) //  Тут костыли от комментария, отсеиваем комментарии, так как они почему-то не приводятся к XmlElement
+                {
+                    XmlElement element = (XmlElement)el;    //  Кастим к XmlElement
+                    if (element.Name.Equals("appSettings")) //  Зашли в ветку настроек
+                    {
+                        foreach (var node in element.ChildNodes)    //  Перебираем настройки
+                        {
+                            if (!node.GetType().ToString().Equals("System.Xml.XmlComment")) //  Повторные кастыли
+                            {
+                                XmlElement X = (XmlElement)node;    //  Кастим к XmlElement
+                                if (X.Attributes[0].Value.Equals("First"))  //  Нашли ключ настройки
+                                {
+                                    X.Attributes[1].Value = "off";  //  Меняем значение настройки
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            confchange.Save(@"C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\ITVDN\.NET_deep_improve\_1_Conso1e\_1_Conso1e\App.config"); //  Сохраняем файл настройки
+            ConfigurationManager.RefreshSection("appSettings");
+            
         //------------------------------------------------------------------------
         //------------------------------------------------------------------------
         */
@@ -1146,6 +1183,7 @@ namespace _1_Conso1e
             */
             #endregion
             //------------------------------------------------------------------------
+
 
             //------------------------------------------------------------------------
             //  Main
