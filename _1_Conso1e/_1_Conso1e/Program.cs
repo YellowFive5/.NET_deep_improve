@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Configuration;
 using System.Xml;
 using System.Xml.XPath;
+using System.Reflection;
 
 namespace _1_Conso1e
 {
@@ -1026,7 +1027,7 @@ namespace _1_Conso1e
             //  "fuck|bitch" -   ИЛИ
 
         //------------------------------------------------------------------------
-        //  КОНФИГУРАЦИЯ, XML, РЕЕСТР
+        //  КОНФИГУРАЦИИ, XML, РЕЕСТР
             //  В App.config прописали настройки в виде ключ-значение
             NameValueCollection allsettings = ConfigurationManager.AppSettings; //  Создали объект настроек
             Console.WriteLine(allsettings["First"]);    //  Читаем настройки
@@ -1061,6 +1062,65 @@ namespace _1_Conso1e
             ConfigurationManager.RefreshSection("appSettings");
             
         //------------------------------------------------------------------------
+        //  REFLECTIONS -   процесс, во время которого программа может отслеживать и модифицировать собственную структуру во время выполнения
+            
+        1.  class MyClass   //  Класс для рефлексии
+            {
+                private int cash = 15;  //  Поля
+                public string name = "Bob";  //  Поля
+                public MyClass() { }    //  Конструкторы
+                public MyClass(string name) { this.name = name; }    //  Конструкторы
+                public string Property { get; set; }   //  Свойства
+                public void Foo() { }   //  Методы
+                private void Foo2() { Console.WriteLine("Закрытый метод"); }   //  Закрытые методы
+                private void Foo3(string message) { Console.WriteLine(message); }   //  Закрытые методы
+            }
+            MyClass my = new MyClass();
+            Type t = my.GetType(); //  Объект класса "волшебника", все про всех знает
+            //  "Расскажи про этого!"
+            //  Рассказываю...
+
+            MethodInfo[] mi = t.GetMethods();   //  В массив получаем все методы
+            MethodInfo[] mi = t.GetMethods(BindingFlags.DeclaredOnly);   //  Или определенные
+            foreach (MethodInfo item in mi)
+            {
+                Console.WriteLine(item.Name);
+            }
+            FieldInfo[] fi = t.GetFields(); //  Аналогично с полями
+            PropertyInfo[] pi = t.GetProperties();  //  Аналогично со свойствами
+            Type[] ty = t.GetInterfaces();  //  Аналогично с интерфейсами
+            ConstructorInfo[] ci = t.GetConstructors(); //  Аналогично с конструкторами
+
+            //  HACK TRICS =)
+            //  Как хакнуть PRIVATE метод объекта
+            MethodInfo method = t.GetMethod("Foo2", BindingFlags.Instance | BindingFlags.NonPublic); //  Объект для вызова метода
+            method.Invoke(my, new object[] { }); //  Вызов метода на объекте
+
+            MethodInfo method2 = t.GetMethod("Foo3", BindingFlags.Instance | BindingFlags.NonPublic); //  Еще один объект для вызова метода
+            method2.Invoke(my, new object[] { "Sayonara bustards!" });    //  Вызов метода с передачей параметров в него
+            //  Изменить PRIVATE поле
+            FieldInfo changer = t.GetField("cash", BindingFlags.Instance | BindingFlags.NonPublic); //  Объект доступа к полю
+            Console.WriteLine(changer.GetValue(my));    //  Было денег...
+            changer.SetValue(my,0); //  Меняем поле
+            Console.WriteLine(changer.GetValue(my));    //  Стало денег
+
+        2.  //  Позднее связывание сборок   -   прием, когда мы пишем приложение, которое не знает с какой DLL библиотекой оно будет работать, и соостветственно, какие в ней классы
+            Assembly assembly = null;
+            assembly = Assembly.Load("Libary_name");    //  Указали имя сборки для загрузки
+            Type[] ty = assembly.GetTypes();    //  Получаем все типы в сборке
+
+            Type t = assembly.GetType("Libary_name.Account");   //  Подписываемся на интересующий класс
+            MemberInfo[] mi = t.GetMembers();   //  Получаем всех членов класса
+            //  Далее используем для получения нужной информации
+
+        //------------------------------------------------------------------------
+        
+        //------------------------------------------------------------------------
+        
+        //------------------------------------------------------------------------
+            
+
+
         //------------------------------------------------------------------------
         */
         #endregion
