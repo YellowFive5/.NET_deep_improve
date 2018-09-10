@@ -14,7 +14,8 @@ using System.Configuration;
 using System.Xml;
 using System.Xml.XPath;
 using System.Reflection;
-
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
 
 namespace _1_Conso1e
 {
@@ -1150,6 +1151,70 @@ namespace _1_Conso1e
         //MyClass.DoSome();  //  Будут работать в зависимости от DEFINE
         //MyClass.DoSome2();  //  Будут работать в зависимости от DEFINE
 
+        //------------------------------------------------------------------------
+        //  SERIALIZATION - DESERIALIZATION -   Процесс преобозования объекта в поток байтов, с целью сохранить его в памяти, а потом воссаздать его состояние в случае необходимости
+        1.  В XML формат:
+            1.  Записываются только открытые типы и члены
+            2.  Класс должен иметь конструктор по умолчанию
+            3.  Читаем визуально
+            4.  Универсален для разных языков
+
+        2.  В двоичный формат
+            1.  Десериализация возможна только в .NET среде
+            2.  Абсолютно все запаковывается
+        
+            //  Main
+            Person pers1 = new Person("Bob", 100);
+            Person pers2 = new Person("Jack", 549);   //  Создали два разных объекта
+
+            FileStream stream = File.Create(@"C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\ITVDN\.NET_deep_improve\_1_Conso1e\_1_Conso1e\Serialize.dat");  //  Создали поток в файл
+            BinaryFormatter formatter = new BinaryFormatter();  //  Создали двоичный сериализатор
+            formatter.Serialize(stream, pers1);  //  В поток бросаем объект
+            stream.Close(); //  Закрываем поток
+
+            stream = File.OpenRead(@"C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\ITVDN\.NET_deep_improve\_1_Conso1e\_1_Conso1e\Serialize.dat");   //  Открываем поток для чтения
+            pers2 = formatter.Deserialize(stream) as Person;    //  Распаковываем в подобный объект
+            //  Объект восстанавливает состояния из файла
+
+            //  Можно осуществить интерфейс ISerializable для тонкой настройки процесса сериализации
+            //  IDeserializationCallback   -   Интерфейс, в котором определяется, что делать, когда из файла восстанавливается объект, у которого на определенных полях стоял запрет не сериализацию, то-есть он скопирован не полностью
+
+            //  [OptionalField] -   атрибут,решает проблему: если мы сериализовали объект, сменилась версия библиотеки, в которой сменился член класса, то в новой версии приложения при десериализации может возникнуть исключение, так как в старой версии объекта член отсутстует.
+            
+            [Serializable]  //  Доступен для сериализации
+            class Person : IDeserializationCallback
+            {
+                private string name;
+                private int money;
+
+                [NonSerialized] //  Запрет на сериализацию определенному члену
+                private int dna = new { X = new Random() }.X.Next();  //  Генерит одной строкой рандомный int, и НЕ сериализуется
+
+                public string Name { get { return name; } }
+                public int Money { get { return money; } }
+                public int Dna { get { return dna; } }
+                public Person(string name, int money)
+                {
+                    this.name = name;
+                    this.money = money;
+                }
+                public void OnDeserialization(object sender)    //  Реалилзоваваем интерфейс десерализации
+                {
+                    this.dna = 99999999;    //  Несериализованное поле после десериализации
+                }
+                //  Методы  -   индикаторы паковки-распаковки
+                [OnSerializing] //  Метод выполнится перед паковкой
+                public void Info(StreamingContext s) { Console.WriteLine("Готовы паковать объект"); }   //  StreamingContext на вход ОБЯЗАТЕЛЕН
+                [OnSerialized]  //  Метод выполнится после паковки
+                public void Info2(StreamingContext s) { Console.WriteLine("Запаковали"); }
+                [OnDeserializing]   //  Метод выполнится перед распаковкой
+                public void Info3(StreamingContext s) { Console.WriteLine("Готовы распаковать"); }
+                [OnDeserialized]    //  Метод выполнится после распаковки
+                public void Info4(StreamingContext s) { Console.WriteLine("Распаковали"); }
+            }
+
+        //------------------------------------------------------------------------
+        
         //------------------------------------------------------------------------
         
         //------------------------------------------------------------------------
