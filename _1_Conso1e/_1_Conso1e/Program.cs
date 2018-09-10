@@ -15,9 +15,9 @@ using System.Xml;
 using System.Xml.XPath;
 using System.Reflection;
 
+
 namespace _1_Conso1e
 {
-
 
     class Program
     {
@@ -1114,7 +1114,42 @@ namespace _1_Conso1e
             //  Далее используем для получения нужной информации
 
         //------------------------------------------------------------------------
-        
+        //  АТРИБУТЫ    -      класс-декоратор.
+        //  Top
+        [assembly: AssemblyVersion("1.0.0.0.7767")] //  Глобальные атрибуты сборки
+        #define TRIAL
+        #define PREMIUM
+
+        [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]  //  Начальный атрибут к пользовательскому атрибуту, устанавливает возможности пользовательского атрибута
+        public class MyAttrubute : Attribute { public int Count { get; set; } } //  Пользовательский атрибут с переменной
+
+        [MyAttrubute(Count = 5)]    //  Кастомизируем класс атрибутом со значением 5
+        public class MyClass
+        {
+            public static void Print()
+            {
+                int count = 1;
+                var type = typeof(MyClass); //  Передаем "волшебнику" класс
+                if (Attribute.IsDefined(type, typeof(MyAttrubute))) //  Если класс кастомизирован атрибутом
+                {
+                    var attr = Attribute.GetCustomAttribute(type, typeof(MyAttrubute)) as MyAttrubute;  //  Получаем объект атрибута
+                    count = attr.Count; //  Получаем значение атрибута
+                }
+                string s = new string('-', count);  //  Используем значение атрибута
+                Console.WriteLine(s);
+            }
+            //
+            [Conditional("TRIAL")]  //  Атрибут работает с DEFINE 
+            public static void DoSome() { Console.WriteLine("TRIAL version works"); }
+            [Conditional("PREMIUM")]  //  Атрибут работает с DEFINE 
+            public static void DoSome2() { Console.WriteLine("PREMIUM version works"); }
+        }
+        //  Main
+        //MyClass.Print();  //    Метод выполнится со значением атрибута
+
+        //MyClass.DoSome();  //  Будут работать в зависимости от DEFINE
+        //MyClass.DoSome2();  //  Будут работать в зависимости от DEFINE
+
         //------------------------------------------------------------------------
         
         //------------------------------------------------------------------------
@@ -1130,7 +1165,7 @@ namespace _1_Conso1e
         {
             #region //Main comments
             /*
-            
+
             double x = 5.545;
             int y = (int)x;   //  Явное приведение типов EXPLICIT, в том случае, когда возможна потеря информации
 
@@ -1243,7 +1278,6 @@ namespace _1_Conso1e
             */
             #endregion
             //------------------------------------------------------------------------
-
 
             //------------------------------------------------------------------------
             //  Main
