@@ -558,13 +558,16 @@ namespace _1_Conso1e
         }
 
         //------------------------------------------------------------------------
-        //  ДИНАМИЧЕСКИЙ ТИП ДАННЫХ, изменяется в любой момент в любой тип. Используется везде как обычый тип, кроме:
+        //  ДИНАМИЧЕСКИЙ ТИП ДАННЫХ
+        //  Изменяется в любой момент в любой тип. Используется везде как обычый тип, кроме:
         //  1.  Собития не поддерживают динамической типизации
         //  2.  default(dynamic)=null
         //  3.  При перегрузке операторов, хотя бы один из параметров НЕ должен быть динамическим
         //      public static Point operator +(Point p, dynamic d) { }
-        //  4. Реализуется идея Ad hock полиморфизма классом dynamic, т.е. привидение к типу без инкапсюляции, как в обычном UPCAST и DOWNCAST
-
+        //  4.  Реализуется идея Ad hock полиморфизма классом dynamic, т.е. привидение к типу без инкапсюляции, как в обычном UPCAST и DOWNCAST
+        //  5.  Выполняется намного дольше обычной переменной
+        //  6.  IntelliSense не работает
+        //  7.  Нельзя закрывать динамиком параметризированный интерфейс
         dynamic variable = 1;    //  Динамическая переменная, INTELLI_SENCE не работает
         variable = "Change to string";  //  Изменили int на string
 
@@ -1255,8 +1258,68 @@ namespace _1_Conso1e
         }
 
         //------------------------------------------------------------------------
+        //  ВЕРСИОННОСТЬ
+        1.  Шаблон проэктирования NVI   -   Non Virtual Interface
+            -   Задача  -   разделить представления интерфейса и его реализацию. Виртуальные функции объявляются protected, а их вызов происходит внутри обычных функций, которые представляются пользователю. Так, при изменении библиотеки базовых классов, пользователям библиотеки ничего не надо менять в коде.
+        2.  Полиморфизм
+            class Base
+            {
+                public virtual void Foo() { Console.WriteLine("Base Foo"); }
+                public virtual void Foo_2() { Console.WriteLine("Base Foo_2"); }
+            }
+            class Derrived : Base
+            {
+                public new void Foo() { Console.WriteLine("Derrived Foo"); }    //  Перекрытие метода
+                public override void Foo_2() { Console.WriteLine("Derrived Foo_2"); }   //  Переопределение метода
+            }
+            //  Main
+            Base b = new Base();    //  Чистый базовый класс
+            b.Foo();    //  "Base Foo"
+            b.Foo_2();  //  "Base Foo_2"
+            Derrived d = new Derrived();    //  Чистый наследник
+            d.Foo();    //  "Derrived Foo"
+            d.Foo_2();  //  "Derrived Foo_2"
+            Base bd = d;    //  Приведенный к базе наследник
+            bd.Foo();   //  Выполнится оригинальная версия из базового класса "Base Foo"
+            bd.Foo_2(); //  Выполнится переопределенная версия "Derrived Foo_2" !!!
+       
+        3.  AdHoc полиморфизм
+            class Class1
+            {
+                public void Method()
+                {
+                    Console.WriteLine("Class1");
+                }
+            }
+            class Class2
+            {
+                public void Method()
+                {
+                    Console.WriteLine("Class2");
+                }
+            }
+            interface IInterface    //  Воздаем связной интерфейс
+            {
+                void Method();
+            }
+            class MyClass1 : Class1, IInterface { } //  Наследуеся от классов и интерфейса, автоматически определяя методы интерфейса
+            class MyClass2 : Class2, IInterface { }
+            //  Main
+            IInterface[] arr = { new MyClass1(),new MyClass2()};    //  Работаем как с однородными объектами 
+            for (int i = 0; i < arr.Length; i++)
+            {
+                arr[i].Method();
+            }
 
-
+        4.  Позднее свызывание
+            //  Main
+            dynamic[] darr = { new Class1(),new Class2()};  //  Аналог предыдущего примера, только просто с dynamic структурой
+            foreach (var item in darr)
+            {
+                item.Method();
+            }
+            
+        //------------------------------------------------------------------------
         
         //------------------------------------------------------------------------
         
@@ -1270,6 +1333,7 @@ namespace _1_Conso1e
         */
         #endregion
         //------------------------------------------------------------------------
+
 
         static void Main(string[] args)
         {
