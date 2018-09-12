@@ -1377,18 +1377,215 @@ namespace _1_Conso1e
         }
         Console.WriteLine(counter); //  При неразделении ресурса ожидаемой "1000" мы не увидим
         
+        4.  
+        static int stop;    //  Флаг работы потока
+        //  Main
+        Console.WriteLine("Main:");
+        Thread.Sleep(2000);
+
+        Thread th = new Thread(delegate ()
+        {
+            while (Thread.VolatileRead(ref stop)!=1)    //  Пока флаг горит, работает поток
+            {
+                Console.WriteLine("Thread");
+            }
+        });
+        th.Start();
+
+        Thread.Sleep(1500);
+        Thread.VolatileWrite(ref stop, 1);  //  Спецобращение к переменной для видимости ее всеми потоками. Изменяем флаг работы
+        Console.WriteLine("Thread остановлен");
+
+        5.  Пул потоков
+        public static void ShowPoolInfo()   //  Инфа о пуле потоков
+        {
+            int AvailableworkerThreads, AvailablecompletionPortThreads, MaxworkerThreads, MaxcompletionPortThreads;
+            ThreadPool.GetAvailableThreads(out AvailableworkerThreads, out AvailablecompletionPortThreads);
+            ThreadPool.GetMaxThreads(out MaxworkerThreads, out MaxcompletionPortThreads);
+            Console.WriteLine(
+                "Доступно потоков в пуле: {0} из {1}\n" +
+                "Доступно потоков ввода-вывода в пуле: {2} из {3}",
+                AvailableworkerThreads, AvailablecompletionPortThreads,
+                MaxworkerThreads, MaxcompletionPortThreads);
+        }
+        public static void Task(Object state)   //  Задача для отдельного потока. Объект в аргумент обязательно
+        {
+            Thread.Sleep(3000);
+        }
+        //  Main
+        ShowPoolInfo();
+        ThreadPool.QueueUserWorkItem(Task); //  Закидываем метод в пул потоков, он начинает выполняться в отдельном потоке.
+        ThreadPool.QueueUserWorkItem(Task); //  Еще один...
+        ThreadPool.QueueUserWorkItem(Task); //  И еще один...
+        ShowPoolInfo(); //  По мере выполнения, менеджер потоков сам освобождает и распределяет потоки
+
+        6.  Объекты синхронизации уровня ядра
+            1.  MUTEX   -   блокировка критической секции на уровне потока ядра
+            private static readonly Mutex mutex = new Mutex(false, "Mutex_hash_0450054");    //  Создали межпроцессовый объект синхронизации
+            public static void Method() //  Метод работы с критической секцией
+            {
+                bool mymutex = mutex.WaitOne(); //  Закрываем критическую секцию для одного потока ядра
+                //  Критическая секция
+                Console.WriteLine("Поток " + Thread.CurrentThread.GetHashCode() + " получил доступ к ресурсу и работает с ним");
+                Thread.Sleep(1500);
+                Console.WriteLine("Поток " + Thread.CurrentThread.GetHashCode() + " освобождает секцию");
+                //  Критическая секция
+                mutex.ReleaseMutex();   //  Снимаем блокировку секции
+            }
+            //  Main
+            var tharr = new Thread[5];  //  Создали потоки
+            for (int i = 0; i < tharr.Length; i++)
+            {
+                tharr[i] = new Thread(Method);  //  Запустили все потоки для работы с критической секцией
+                tharr[i].Start();
+            }
+            //  Mutex-блокировка разрешает работу с секцией только одному потоку на уровне системы, т.е даже при многократном запуске приложения гарантируется правильный доступ к секции только одному потоку на уровне ядра
+        
+            2.  SEMAPHORE   -   Предоставляет пулл из потоков
+            static Semaphore pool;
+            static void Work(Object number)
+            {
+                pool.WaitOne(); //  Точка доступа семафора, разрешает вход определенному числу потоков
+                Console.WriteLine("Поток " + number + " занял слот семафора и работает с ним");
+                Thread.Sleep(2000);
+                Console.WriteLine("Поток " + number + " освободил слот семафора");
+                pool.Release(); //  Точка выхода для потока семафора
+            }
+            //  Main
+            pool = new Semaphore(1, 10, "Semaphore_hash_034495");  //  Создали семафор, с изначально одним рабочим потоком из пулла 10 потоков
+            for (int i = 0; i < 10; i++)    //  Генерим 10 потоков
+            {
+                Thread th = new Thread(Work);   //  Запускаемся
+                th.Start(i);
+            }
+            Thread.Sleep(6000);
+            //  В течении 6 секунд семафор будет разрешать работу только одному потоку
+            pool.Release(9); //  Сбрасываем ограничение на остальные 9 потока
+                             //  После чего все 10 симафорных потоков работают одновременно
+
+            //  SEMAPHORE slim  -   легковесная реализация, без блокировки на уровне ядра, но в остальном аналогична
+
+            3.  AUTORESETEVENT  -   Уведомление ОДНИМ потоком ДРУГОГО потока о неком собитии
+            static readonly AutoResetEvent auto = new AutoResetEvent(false);
+            static void Function()
+            {
+                while (true)
+                {
+                    auto.WaitOne(); //  Ждет сигнального состояния 
+                    Console.WriteLine("Пришел сигнал, поток выполняет");
+                }
+            }
+            //  Main
+            Console.WriteLine("Нажмите кнопку для перевода AutoReset в сигнальное состояние");
+            var th = new Thread(Function);  //  Запускается паралельный поток
+            th.Start();
+
+            while (true)
+            {
+                Console.ReadKey();  //  Нажимается любая кнопка
+                auto.Set(); //  Сигнал, пралелельный поток ловит сигнал и продолжает работу
+            }
+
+            4.  MANUALRESETEVENT
+            //  Один сигнал, много ожидающих
+            static ManualResetEvent manual = new ManualResetEvent(false);
+            static void Function_1()
+            {
+                while (true)
+                {
+                    Console.WriteLine("Поток 1 запущен и ждет сигнала");
+                    manual.WaitOne();   //  Ждем сигнала
+                    Console.WriteLine("Поток 1 отработал");
+                    Thread.Sleep(20);
+                    manual.Reset(); //  Переводим сигнал в ВЫКЛ
+                }
+            }
+            static void Function_2()
+            {
+                while (true)
+                {
+                    Console.WriteLine("Поток 2 запущен и ждет сигнала");
+                    manual.WaitOne();   //  Ждем сигнала
+                    Console.WriteLine("Поток 2 отработал");
+                    Thread.Sleep(20);
+                    manual.Reset(); //  Переводим сигнал в ВЫКЛ
+                }
+            }
+            //  Main
+            Thread[] tharr = { new Thread(Function_1), new Thread(Function_2) };
+            foreach (Thread item in tharr)
+            {
+                item.Start(); 
+            }
+            while (true)
+            {
+                Console.WriteLine("Нажмите кнопку чтобы послать сигнал");
+                Console.ReadKey();
+                manual.Set();  //  Посылаем сигнал
+            }
+
+            //  MANUALRESETEVENTslim -  облегченный аналог, не обращающийся к блокировке на уровне ядра
+
+            5.  EVENTWAITHANDLE -   глобальное событие
+            static EventWaitHandle globalmanual = null;
+            //  Main
+            globalmanual = new EventWaitHandle(false, EventResetMode.ManualReset, "GlobalEvent_hash");  //  Создаем глобальное событие
+            Thread th = new Thread(delegate(){  //  Поток
+                globalmanual.WaitOne(); //  Ждет события
+                while (true)
+                {
+                    Console.WriteLine("Hello!");
+                }
+            });
+            th.IsBackground = true;
+            th.Start();
+            Console.WriteLine("Нажмите кнопку чтобы отправить глобальное событие");
+            Console.ReadKey();
+            globalmanual.Set(); //  Отправляет глобальное событие
+            //  Даже если в системе работает несколько приложений, создается глобальный сигнал ядра, и все кто его ожидает начинают работу
+
+            6.  Множественность событий
+            static WaitHandle[] events = new WaitHandle[] { new AutoResetEvent(false), new AutoResetEvent(false), };    //  Массив событий
+            static void Task_1(Object state)
+            {
+                var auto = state as AutoResetEvent;
+                Console.WriteLine("Метод 1 выполняется...");
+                Thread.Sleep(2000);
+                Console.WriteLine("Метод 1 готов!");
+                auto.Set(); //  Сигналим готовым первым методом
+            }
+            static void Task_2(Object state)
+            {
+                var auto = state as AutoResetEvent;
+                Console.WriteLine("Метод 2 выполняется...");
+                Thread.Sleep(5000);
+                Console.WriteLine("Метод 2 готов!");
+                auto.Set(); //  Сигналим готовым вторым методом
+            }
+            //  Main
+            Console.WriteLine("Главный поток ждет завершения обеих задач");
+            ThreadPool.QueueUserWorkItem(Task_1, events[0]);    //  В пулл кидаем первую задачу с первым событием
+            ThreadPool.QueueUserWorkItem(Task_2, events[1]);    //  и вторую задачу со вторым событием
+            //  Задачи выполняются...
+            WaitHandle.WaitAll(events); //  Главный поток ждет пока ОБА события не сработают
+            Console.WriteLine("Обе задачи завершены, главный поток идет дальше");
+
+            WaitHandle.WaitAny(events); //  Главный поток ждет пока ЛЮБОЕ ИЗ событий не сработет
+            Console.WriteLine("Какая-то из задач готова, главный поток идет дальше");
+
+        //------------------------------------------------------------------------
+
         //------------------------------------------------------------------------
 
         //------------------------------------------------------------------------
         
         //------------------------------------------------------------------------
-            
-
 
         //------------------------------------------------------------------------
         */
         #endregion
         //------------------------------------------------------------------------
+
 
         static void Main(string[] args)
         {
@@ -1513,6 +1710,7 @@ namespace _1_Conso1e
             */
             #endregion
             //------------------------------------------------------------------------
+
 
             //------------------------------------------------------------------------
             //  Main
