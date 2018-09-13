@@ -16,6 +16,7 @@ using System.Xml.XPath;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
+using System.Runtime.Remoting.Messaging;
 
 namespace _1_Conso1e
 {
@@ -1573,6 +1574,74 @@ namespace _1_Conso1e
             WaitHandle.WaitAny(events); //  Главный поток ждет пока ЛЮБОЕ ИЗ событий не сработет
             Console.WriteLine("Какая-то из задач готова, главный поток идет дальше");
 
+        7.  Асинхронная модель
+        static void AsyncMethod()
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                Console.WriteLine("Работает асинхронный метод_");
+                Thread.Sleep(500);
+            }
+        }
+        //  Main
+        var del = new Action(AsyncMethod);  //  Создаем делегат с методом
+        IAsyncResult asres = del.BeginInvoke(null, null);   //  Через объект интерфейса запускаем делегата в асинхронном потоке
+        //  Метод начинает выполняться асинхронно с главным потоком
+        for (int i = 0; i < 5; i++)    //  Работа главного потока
+        {
+            Console.WriteLine("Работает main_");
+            Thread.Sleep(500);
+        }   //  Главный поток заканчивает работу быстрее
+        Console.WriteLine("Main завершил работу");
+        while (!asres.IsCompleted)  // и пока асинхронный поток еще работает
+        {
+            Console.WriteLine("Main ждет асинхронного потока");
+            Thread.Sleep(500);
+        }
+        del.EndInvoke(asres);   //  Главный поток ждет окончания асинхронного потока
+
+        //  Аналог с обработкой результата выполнения асинхронного метода
+
+        static int AsyncMethod(int x, int y)
+        {
+            Console.WriteLine("Работает асинхронный метод ");
+            Thread.Sleep(5000);
+            Console.WriteLine("Асинхронный метод отработал ");
+            return x * y;
+        }
+        static void AsyncComplete(IAsyncResult Res) //  Метод, который запуститься после отработки асинхронного метода в том же асинхронном потоке
+        {
+            //  Получение экземпляра делегата, на котором была вызвана асинхронная операция
+            var result = Res as AsyncResult;
+            var caller = (Func<int, int, int>)result.AsyncDelegate;
+            //  Получение результата из асинхронного метода
+            int mult = caller.EndInvoke(result);
+            //  Получение строкового аргумента из вызова асинхрона и привидение его в маску вывода
+            string resmask = string.Format(Res.AsyncState.ToString(), mult);
+            Console.WriteLine("Метод-обработчик. Результат работы асинхроного метода: " + resmask);
+        }
+        //  Main
+        var del = new Func<int, int, int>(AsyncMethod);  //  Создаем делегат с методом и тремя генериками, два на аргументы, один на вывод
+        var callback = new AsyncCallback(AsyncComplete);    //  Создаем делегат метода-обработчика
+        var asres = del.BeginInvoke(7, 8, callback, "a * b = {0}"); //  Запускаемся в асинхроне, передавая аргументы в метод, делегат обработчика и строковую маску вывода как аргумент.
+        //  Метод начинает выполняться асинхронно с главным потоком
+        Console.WriteLine("Работает main ");
+        Thread.Sleep(2000);
+        Console.WriteLine("Main завершил работу");
+
+        //  Пример использования для чтения-записи
+        static void Confirmation(IAsyncResult Res)  //  Метод-обработчик 
+        {
+            Console.WriteLine("Файл записан");
+            var stream = Res.AsyncState as FileStream;
+            if (stream != null)
+                stream.Close(); //  Закрываем поток
+        }
+        //  Main
+        var stream = new FileStream("File.txt", FileMode.OpenOrCreate, FileAccess.ReadWrite);   //  Создаем поток
+        byte[] arr = { 1, 2, 3, 4, 5, 6, 7 };   //  Создаем массив, который будем записывать
+        stream.BeginWrite(arr,0,arr.Length,Confirmation,stream);    //  В асинхроне начинаем писать и передаем обработчик
+
         //------------------------------------------------------------------------
 
         //------------------------------------------------------------------------
@@ -1585,7 +1654,6 @@ namespace _1_Conso1e
         */
         #endregion
         //------------------------------------------------------------------------
-
 
         static void Main(string[] args)
         {
@@ -1711,12 +1779,11 @@ namespace _1_Conso1e
             #endregion
             //------------------------------------------------------------------------
 
-
             //------------------------------------------------------------------------
             //  Main
             //  Main
             //  Main
-            Console.WriteLine();
+            Console.WriteLine("Main завершен");
             Console.ReadKey();
         }
     }
