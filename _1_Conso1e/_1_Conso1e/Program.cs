@@ -1642,6 +1642,87 @@ namespace _1_Conso1e
         byte[] arr = { 1, 2, 3, 4, 5, 6, 7 };   //  Создаем массив, который будем записывать
         stream.BeginWrite(arr,0,arr.Length,Confirmation,stream);    //  В асинхроне начинаем писать и передаем обработчик
 
+        8.  Task parallel library   -   современная удобная реализация многопотока
+        static void Method()
+        {
+            Console.WriteLine("Метод " + Task.CurrentId + " в паралельном потоке начал работать");
+            Thread.Sleep(1000);
+            Console.WriteLine("Метод " + Task.CurrentId + " в паралельном потоке закончил работать");
+        }
+        static void NextMethod(Task t)  //  Следующая задача, или задача-обработчик
+        {
+            Console.WriteLine("Следующая задача в паралельном потоке начала работу");
+            Thread.Sleep(500);
+            Console.WriteLine("Следующая задача в паралельном потоке закончила работу");
+        }
+        static int Mult5(object x)   //  Задача с входными-выходными параметрами
+        {
+            int y = (int)x; //  Распаковываем 
+            Thread.Sleep(1000);
+            return y * 5;
+        }
+        static void CancelMethod(object o)  //  Метод, который можно отменить в поцессе выполнения
+        {
+            var cancel = (CancellationToken)o;
+            cancel.ThrowIfCancellationRequested();
+            for (int i = 0; i < 10; i++)
+            {
+                if (cancel.IsCancellationRequested)
+                {
+                    Console.WriteLine("Метод отменен");
+                    cancel.ThrowIfCancellationRequested();
+                }
+                Thread.Sleep(100);
+                Console.WriteLine("Метод работает");
+            }
+            Console.WriteLine("Метод завершен");
+        }
+        static void SomeMethod()    //  Метод для паралельного потока
+        {
+            Console.WriteLine("Метод в потоке " + Thread.CurrentThread.GetHashCode() + " начал выполняться");
+            for (int i = 0; i < new Random().Next(1, 10); i++)
+            {
+                Console.WriteLine("Метод в потоке " + Thread.CurrentThread.GetHashCode() + " работает");
+                Thread.Sleep(new Random().Next(200, 800));
+            }
+            Console.WriteLine("Метод в потоке " + Thread.CurrentThread.GetHashCode() + " закончил выполняться");
+        }
+        //  Main
+        Task T = new Task(Method);
+        Task L = new Task(() => { Console.WriteLine("Lambda задача"); });
+        Task T2 = new Task(Method);
+        Task C = T.ContinueWith(NextMethod);    //  Задача-продолжение начинает выполняться после выполнения основной
+        T.Start();
+        T2.Start(); //  Так называемая холодная задача. Сначала создали а потом запустили
+
+        T.Wait();   //  Main ждет завершения
+        T2.Wait();
+        C.Wait();
+
+        Task.WaitAll(T, T2); //  Аналог
+        int whofirst = Task.WaitAny(T, T2);    //  Ждем первую из, возвращает индекс первой завершенной задачи
+
+        Task TF = Task.Factory.StartNew(Method);    //  Горячая задача, сразу запускается
+
+        Task<int> TF2 = Task<int>.Factory.StartNew(Mult5, 2);    //  Запуск задачи с аргументами
+        Console.WriteLine("Результат выполнения задачи с параметрами: " + TF2.Result);    //  Получаем результат
+
+        var canceltok = new CancellationTokenSource();  //  Создали объект отмены
+        Task TF3 = Task.Factory.StartNew(CancelMethod, canceltok.Token, canceltok.Token); //  Запустились
+        Thread.Sleep(500);  //  Дали поработать мэину
+        canceltok.Cancel(); //  Отправили запрос на отмену
+        TF3.Wait();
+
+        Parallel.Invoke(SomeMethod, SomeMethod, SomeMethod); //  Выполнение методов в паралельных потоках
+        var options = new ParallelOptions   //  Настройки количества потоков паралельного запуска
+        {
+            MaxDegreeOfParallelism = Environment.ProcessorCount > 2 ? Environment.ProcessorCount - 1 : 1
+        };  //  Если процессоров в системе больше двух, включаем на 1 меньше, иначе просто один
+        Parallel.Invoke(options, SomeMethod, SomeMethod, SomeMethod, SomeMethod);   //  Запуск с настройками
+        Parallel.Invoke(() => { Console.WriteLine("Lambda 1"); }, () => { Console.WriteLine("Lambda 2"); });    //  Лямбды в паралельный поток
+
+        Parallel.For(); //  Выполнение цикла for в многопотоке
+
         //------------------------------------------------------------------------
 
         //------------------------------------------------------------------------
