@@ -17,6 +17,7 @@ using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 using System.Runtime.Remoting.Messaging;
+using System.Net;
 
 namespace _1_Conso1e
 {
@@ -1723,6 +1724,28 @@ namespace _1_Conso1e
 
         Parallel.For(); //  Выполнение цикла for в многопотоке
 
+        9. Async & Await
+        static void Method()    //  Обычный синхронный метод
+        {
+            Console.WriteLine("Метод начал работу");
+            Thread.Sleep(3000);
+            Console.WriteLine("Метод закончил работу");
+        }
+        async static Task AsyncMethod() //  Асинхронный метод
+        {
+            Console.WriteLine("Async метод начал работу");
+            await Task.Factory.StartNew(Method);    //  Вызывает обычный метод
+            //  Так как возвращаемое значение типа Task, return можно не указывать, оно само генерится awaitом
+            Console.WriteLine("Async метод закончил работу");
+        }
+        //  Main
+        Method(); //  Если запустить обычный синхронный метод, главный поток подвиснет до конца выполнения метода
+        Task t = AsyncMethod(); //  Запускаем асинхронный метод.
+        while (!t.IsCompleted)  //  Главный поток продолжает работу и не блокируется, до тех пор пока не отработает асинхронный поток
+        {
+            Thread.Sleep(500);
+            Console.WriteLine("Main активен");
+        }
         //------------------------------------------------------------------------
 
         //------------------------------------------------------------------------
@@ -1735,7 +1758,6 @@ namespace _1_Conso1e
         */
         #endregion
         //------------------------------------------------------------------------
-
         static void Main(string[] args)
         {
             #region //Main comments
