@@ -2,3 +2,6 @@
 /obj/
 /Properties/
 /_1_Conso1e.csproj
+*.csproj.user
+*.mdf
+*.ldf

@@ -18,6 +18,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 using System.Runtime.Remoting.Messaging;
 using System.Net;
+using System.Data.SqlClient;
 
 namespace _1_Conso1e
 {
@@ -1818,11 +1819,52 @@ namespace _1_Conso1e
         //  МЕЖПРОЦЕССОРНОЕ ВЗАИМОДЕЙСТВИЕ
         Inter Process Communication
         //------------------------------------------------------------------------
+        */
+        #endregion
+        //------------------------------------------------------------------------
+        #region ADO.NET
+        /* 
+        //------------------------------------------------------------------------
+        //  ADO.NET
+        //  Предоставляет различные службы для доступа к базам данных
+        
+        1.  Строка подключения, открытие-закрытие соединения.
+        //В проэкт добавляем базу данных. Через ПКМ-Свойства смотрим строку подключения
+        string connectionstring = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\ITVDN\.NET_deep_improve\_1_Conso1e\_1_Conso1e\Database.mdf;Integrated Security=True"; //  Явно прописываем строку соединения
+        SqlConnection connection = new SqlConnection(connectionstring); //  Создаем объект соединения по строке
+        try
+        {
+            connection.Open();
+            Console.WriteLine(connection.State);
+        }
+        catch (Exception e)
+        {
+
+            Console.WriteLine(e.Message);
+        }
+        finally
+        {
+            connection.Close();
+            Console.WriteLine(connection.State);
+        }
+        //  Если предполагается взаимоедйствие с пользователем при построении строки соединения, то явно встраивать введенные пользователем данные опасно, нужно использовать 
+        SqlConnectionStringBuilder CSB = new SqlConnectionStringBuilder();
+        CSB.DataSource = @"(LocalDB)\MSSQLLocalDB";
+        CSB.AttachDBFilename = @"C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\ITVDN\.NET_deep_improve\_1_Conso1e\_1_Conso1e\Database.mdf";
+        CSB.UserID = Console.ReadLine();
+        CSB.Password = Console.ReadLine();
+        SqlConnection connection = new SqlConnection(CSB.ConnectionString);
+
+        Pooling=true;   //  Добавка в строку подключения, включающая пулл соединения, что позволяет не закрывать соединение когда много циклов открытия-закрытия, координально сокращая время обращения к базе данных
+
+        2.
+
+        //------------------------------------------------------------------------
 
         //------------------------------------------------------------------------
         
         //------------------------------------------------------------------------
-
+        
         //------------------------------------------------------------------------
         */
         #endregion
@@ -1951,6 +1993,13 @@ namespace _1_Conso1e
             */
             #endregion
             //------------------------------------------------------------------------
+            //
+            string connectionstring = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\ITVDN\.NET_deep_improve\_1_Conso1e\_1_Conso1e\Database.mdf;Integrated Security=True; Pooling=true"; //  Явно прописываем строку соединения
+            SqlConnection connection = new SqlConnection(connectionstring); //  Создаем объект соединения по строке
+            connection.Open();
+            Console.WriteLine(connection.State);
+            connection.Close();
+            Console.WriteLine(connection.State);
 
             //------------------------------------------------------------------------
             //  Main
