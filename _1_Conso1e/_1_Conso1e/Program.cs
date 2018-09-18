@@ -1857,7 +1857,48 @@ namespace _1_Conso1e
 
         Pooling=true;   //  Добавка в строку подключения, включающая пулл соединения, что позволяет не закрывать соединение когда много циклов открытия-закрытия, координально сокращая время обращения к базе данных
 
-        2.
+        2.  Команды
+        DBNull.Value  //  Класс NULL из ДБ
+        SqlCommand cmd_select = new SqlCommand("SELECT Name FROM Players WHERE Id=1", connection);  //  Создали команду выбора
+        string res = (string)cmd_select.ExecuteScalar();   //  Выполнили команду, возвращающую один объект
+        Console.WriteLine(res);
+
+        SqlCommand cmd_insert = new SqlCommand("INSERT INTO Players VALUES (4,'Anna',NULL)", connection);   //  Команда вставки
+        int rowaffected = cmd_insert.ExecuteNonQuery(); //  Выполняем команду вставки, возвращается количество измененных полей
+        Console.WriteLine(rowaffected + " Rows_Affected");
+
+        SqlCommand cmd_delete = new SqlCommand("DELETE FROM Players WHERE Id=4",connection);    //  Команда удаления
+        int rowaffected = cmd_delete.ExecuteNonQuery(); //  Выполняем команду удаления
+        Console.WriteLine(rowaffected+" Rows_Affected");
+
+        SqlCommand cmd_selectall = new SqlCommand("SELECT * FROM Players", connection); //  Создаем команду выбора всего
+        SqlDataReader reader = cmd_selectall.ExecuteReader();   //  Создаем ридер на выполненной команде
+        while (reader.Read())   //  Пока ридер читает
+        {
+            for (int i = 0; i < reader.FieldCount; i++) //  Либо через for выводим все
+            {
+                Console.WriteLine(reader.GetName(i) + " : " + reader[i]);
+            }
+            Console.WriteLine("ID: {0}\tNAME: {1}\tGAMES PLAYED: {2}", reader.GetFieldValue<int>(0), reader.GetString(1), reader.GetValue(2)); // Либо через каждую запись
+            Console.WriteLine(reader[0].ToString() + reader["Name"].ToString() + reader[2].ToString());  //  Либо через индексатор
+
+        }
+        reader.Close(); //  Закрываем ридер
+
+        SqlCommand cmd_asyncdelay = new SqlCommand("WAITFOR DELAY '00:00:05'",connection);  //  Имитация длительной работы с БД
+        var DBTask = cmd_asyncdelay.ExecuteNonQueryAsync(); //  Запуск в асинхроне
+        while (!DBTask.IsCompleted) //  Пока работем с БД
+        {
+            Console.WriteLine("Main активен");
+            Thread.Sleep(100);
+        }
+
+        SqlCommand cmd_transact = new SqlCommand("INSERT INTO Players VALUES(4, 'Anna', NULL);" +
+                                                "UPDATE Players SET GamesPlayed=5 WHERE Name='Anna'", connection);  //  Много команд
+        cmd_transact.Transaction = connection.BeginTransaction(IsolationLevel.);   //  Открываем соединение c настройкой изоляции 
+        cmd_transact.ExecuteNonQuery(); //  Выполняем транзакцией все команды
+        cmd_transact.Transaction.Commit();  //  Фиксируем транзакцию
+        cmd_transact.Transaction.Rollback();    //  Или отменяем изменения
 
         //------------------------------------------------------------------------
 
@@ -1993,14 +2034,20 @@ namespace _1_Conso1e
             */
             #endregion
             //------------------------------------------------------------------------
-            //
             string connectionstring = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\ITVDN\.NET_deep_improve\_1_Conso1e\_1_Conso1e\Database.mdf;Integrated Security=True; Pooling=true"; //  Явно прописываем строку соединения
             SqlConnection connection = new SqlConnection(connectionstring); //  Создаем объект соединения по строке
+            //------------------------------------------------------------------------
+
+
+            //-----------------------------------
             connection.Open();
             Console.WriteLine(connection.State);
+            //-----------------------------------
+
+
+            //------------------------------------------------------------------------
             connection.Close();
             Console.WriteLine(connection.State);
-
             //------------------------------------------------------------------------
             //  Main
             //  Main
