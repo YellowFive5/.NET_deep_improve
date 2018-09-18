@@ -19,6 +19,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Remoting.Messaging;
 using System.Net;
 using System.Data.SqlClient;
+using System.Data;
 
 namespace _1_Conso1e
 {
@@ -1830,8 +1831,9 @@ namespace _1_Conso1e
         
         1.  Строка подключения, открытие-закрытие соединения.
         //В проэкт добавляем базу данных. Через ПКМ-Свойства смотрим строку подключения
-        string connectionstring = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\ITVDN\.NET_deep_improve\_1_Conso1e\_1_Conso1e\Database.mdf;Integrated Security=True"; //  Явно прописываем строку соединения
+        string connectionstring = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\Database.mdf;Integrated Security=True; Pooling=true"; //  Явно прописываем строку соединения
         SqlConnection connection = new SqlConnection(connectionstring); //  Создаем объект соединения по строке
+        Console.WriteLine(connection.Database); //  Местоположение базы
         try
         {
             connection.Open();
@@ -1899,6 +1901,54 @@ namespace _1_Conso1e
         cmd_transact.ExecuteNonQuery(); //  Выполняем транзакцией все команды
         cmd_transact.Transaction.Commit();  //  Фиксируем транзакцию
         cmd_transact.Transaction.Rollback();    //  Или отменяем изменения
+
+        3.  Data Table, Data Set  -   объектно-ориентированное представление таблицы
+        SqlCommand cmd_schema = new SqlCommand("SELECT * FROM Players", connection);    //  Выбираем все
+        SqlDataReader reader = cmd_schema.ExecuteReader();  //  Ридер
+        DataTable schema = reader.GetSchemaTable(); //  Получаем схему таблицы из ДБ в объект локальной таблицы
+        foreach (DataRow row in schema.Rows)    //  Перебираем всю схему
+        {
+            foreach (DataColumn col in schema.Columns)
+            {
+                Console.WriteLine(col.ColumnName + "\t-\t" + row[col]);
+            }
+            Console.WriteLine();
+        }
+
+        //  Копирование в локальный объект таблицы
+        DataTable filled = new DataTable("AllDataTable");   //  Создали объект таблицы
+        filled.Load(reader);    //  Скопировали из ридера все
+        reader.Close();
+        foreach (DataRow row in filled.Rows)    //  Перебираем  всю таблицу
+        {
+            foreach (DataColumn col in filled.Columns)
+            {
+                Console.WriteLine(col.ColumnName + "\t-\t" + row[col]);
+            }
+            Console.WriteLine();
+        }
+
+        DataTable data = new DataTable("Data");
+        SqlDataAdapter adapter = new SqlDataAdapter("SELECT * FROM Players", connection);   //  Аналог с помощью адаптера
+        adapter.Fill(data); //  Заполняем через с помощью адаптера
+        foreach (DataRow row in data.Rows)
+        {
+            foreach (DataColumn col in data.Columns)
+            {
+                Console.WriteLine(col.ColumnName + "\t-\t" + row[col]);
+            }
+        }
+
+        4.  Data View
+        DataTable data = new DataTable("Data");
+        SqlDataAdapter adapter = new SqlDataAdapter("SELECT * FROM Players", connection);   //  Аналог с помощью адаптера
+        adapter.Fill(data); //  Заполняем через с помощью адаптера
+        //DataView dataview = new DataView(data); //  Объект вида обычный
+        DataView dataview = new DataView(data,"Id>1","Name",DataViewRowState.Unchanged); //  Объект вида с параметрами
+        foreach (DataRowView viewrow in dataview)   //  Перебираем 
+        {
+            Console.WriteLine(viewrow["Id"].ToString() + viewrow["Name"] + viewrow[2]);
+        }
 
         //------------------------------------------------------------------------
 
@@ -2034,7 +2084,7 @@ namespace _1_Conso1e
             */
             #endregion
             //------------------------------------------------------------------------
-            string connectionstring = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\YellowFive\Dropbox\MY\Visual Studio\Projects\ITVDN\.NET_deep_improve\_1_Conso1e\_1_Conso1e\Database.mdf;Integrated Security=True; Pooling=true"; //  Явно прописываем строку соединения
+            string connectionstring = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\Database.mdf;Integrated Security=True; Pooling=true"; //  Явно прописываем строку соединения
             SqlConnection connection = new SqlConnection(connectionstring); //  Создаем объект соединения по строке
             //------------------------------------------------------------------------
 
