@@ -20,6 +20,8 @@ using System.Runtime.Remoting.Messaging;
 using System.Net;
 using System.Data.SqlClient;
 using System.Data;
+using System.Data.Entity;
+using System.Data.Entity.Migrations;
 
 namespace _1_Conso1e
 {
@@ -1960,8 +1962,6 @@ namespace _1_Conso1e
         //  Полностью развертывает базу данных в ООП сущности для работы с ними 
         1.  DataBase First  -   Все развертывается на основе готовой БД
         //  ПКМ по проекту-добавить элемент-модель ADO.NET EDM-Подключится к нужной БД-дальше пакет все сформирует сам
-        
-            
         2.  Model First -   Сначала моделируем схему, а потом фрейм все развертывает на основе схемы
         3.  Code First  -   Сначала пишется код всех классов, потом на его основе генерится база 
         
@@ -1971,6 +1971,20 @@ namespace _1_Conso1e
         {
             entities.Players.Add(new Player { Name = "Gogic", GamesPlayed = 9 }); //  Добавляем поля в кеш
             entities.SaveChanges();   //  Сохраняем в БД
+
+            Player one = new Player { Name = "Huan", GamesPlayed = 45 };
+            Player two = new Player { Name = "Herule", GamesPlayed = 25 };
+            entities.Players.AddRange(new List<Player> { one, two });   //  Добавить несколько записей
+
+            var change = entities.Players.Find(9);  //  Ищем по ключу
+            change.Name = "Jorick"; //  Меняем найденому объекту поле
+            entities.Players.AddOrUpdate(change);   //  Апдейтим
+            //entities.Entry(change).State = EntityState.Modified;  //  Еще один выриант апдейта
+            entities.SaveChanges();   //  Сохраняем в БД
+
+            var del = entities.Players.Find(9); //  Удаление
+            entities.Players.Remove(del);
+            entities.SaveChanges();
         }
 
         List<Player> list = entities.Players.ToList();  //  В лист набиваем все поля таблицы
@@ -2111,12 +2125,15 @@ namespace _1_Conso1e
             */
             #endregion
             //------------------------------------------------------------------------
-            DbEntities entities = new DbEntities(); //  Создали объект развертки БД
-            List<Player> list = entities.Players.ToList();  //  В лист набиваем все поля таблицы
-            foreach (Player item in list)   //  Перебираем
+            using (DbEntities entities = new DbEntities())  //  Блок для корректного закрытия соединения
             {
-                Console.WriteLine(item.Id + item.Name + item.GamesPlayed);
+                List<Player> list = entities.Players.ToList();  //  В лист набиваем все поля таблицы
+                foreach (Player item in list)   //  Перебираем
+                {
+                    Console.WriteLine(item.Id + item.Name + item.GamesPlayed);
+                }
             }
+
             //------------------------------------------------------------------------
             //  Main
             //  Main
