@@ -5,3 +5,12 @@
 *.csproj.user
 *.mdf
 *.ldf
+/MyModel.tt
+/Player.cs
+/packages.config
+/MyModel.Context.cs
+/MyModel.Context.tt
+/MyModel.Designer.cs
+/MyModel.cs
+/MyModel.edmx
+/MyModel.edmx.diagram

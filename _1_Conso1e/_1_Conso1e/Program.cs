@@ -1949,14 +1949,41 @@ namespace _1_Conso1e
         {
             Console.WriteLine(viewrow["Id"].ToString() + viewrow["Name"] + viewrow[2]);
         }
+        */
+        #endregion
+        //------------------------------------------------------------------------
+        #region ENTITY FRAMEWORK 6
+        /*
+        //------------------------------------------------------------------------
+        //  ENTITY FRAMEWORK 6
+        ORM
+        //  Полностью развертывает базу данных в ООП сущности для работы с ними 
+        1.  DataBase First  -   Все развертывается на основе готовой БД
+        //  ПКМ по проекту-добавить элемент-модель ADO.NET EDM-Подключится к нужной БД-дальше пакет все сформирует сам
+        
+            
+        2.  Model First -   Сначала моделируем схему, а потом фрейм все развертывает на основе схемы
+        3.  Code First  -   Сначала пишется код всех классов, потом на его основе генерится база 
+        
+        DbEntities entities = new DbEntities(); //  Создали объект развертки БД
+
+        using (entities)  //  Блок для корректного закрытия соединения
+        {
+            entities.Players.Add(new Player { Name = "Gogic", GamesPlayed = 9 }); //  Добавляем поля в кеш
+            entities.SaveChanges();   //  Сохраняем в БД
+        }
+
+        List<Player> list = entities.Players.ToList();  //  В лист набиваем все поля таблицы
+        foreach (Player item in list)   //  Перебираем
+        {
+            Console.WriteLine(item.Id + item.Name + item.GamesPlayed);
+        }
+            
+            
+        //------------------------------------------------------------------------
 
         //------------------------------------------------------------------------
 
-        //------------------------------------------------------------------------
-        
-        //------------------------------------------------------------------------
-        
-        //------------------------------------------------------------------------
         */
         #endregion
         //------------------------------------------------------------------------
@@ -2084,20 +2111,12 @@ namespace _1_Conso1e
             */
             #endregion
             //------------------------------------------------------------------------
-            string connectionstring = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\Database.mdf;Integrated Security=True; Pooling=true"; //  Явно прописываем строку соединения
-            SqlConnection connection = new SqlConnection(connectionstring); //  Создаем объект соединения по строке
-            //------------------------------------------------------------------------
-
-
-            //-----------------------------------
-            connection.Open();
-            Console.WriteLine(connection.State);
-            //-----------------------------------
-
-
-            //------------------------------------------------------------------------
-            connection.Close();
-            Console.WriteLine(connection.State);
+            DbEntities entities = new DbEntities(); //  Создали объект развертки БД
+            List<Player> list = entities.Players.ToList();  //  В лист набиваем все поля таблицы
+            foreach (Player item in list)   //  Перебираем
+            {
+                Console.WriteLine(item.Id + item.Name + item.GamesPlayed);
+            }
             //------------------------------------------------------------------------
             //  Main
             //  Main
