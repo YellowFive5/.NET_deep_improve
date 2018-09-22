@@ -1992,7 +1992,55 @@ namespace _1_Conso1e
         {
             Console.WriteLine(item.Id + item.Name + item.GamesPlayed);
         }
-            
+        
+        //  LINQ
+        class Person    //  Класс с именем и возрастом
+        {
+            public string Name { get; set; }
+            public int Age { get; set; }
+        }
+        var people = new List<Person>   //  Набиваем коллекцию
+        {
+            new Person { Name="Bill", Age=35},
+            new Person { Name="William", Age=25},
+            new Person { Name="Jenn", Age=15},
+            new Person { Name="Ann", Age=5}
+        };
+        var result = from res in people //  В результирующую коллекцию в объект res из коллекции
+                        where res.Age > 18 //  где у объекта поле по условию
+                        select res.Name;   //  проэцируем объект или его определенные поля 
+        foreach (var r in result)   //  Пребираем результирующую коллекцию
+        {
+            Console.WriteLine(r);
+        }
+
+        using (DbEntities entities = new DbEntities())
+        {
+            IQueryable<Player> col = entities.Players;  //  Формируем запрос
+            col = col.Where(x => x.GamesPlayed > 1).OrderBy(x =>x.GamesPlayed);   //  Конфигурируем запрос
+
+            var col = from q in entities.Players    //  То же самое только LINQ
+                      orderby q.GamesPlayed
+                      select q;
+            foreach (var item in col)   //  И только при обращении к запросу он идет в БД
+            {
+                Console.WriteLine("{0}-{1}", item.Name, item.GamesPlayed);
+            }
+
+            Player p = entities.Players.FirstOrDefault(x=>x.Name=="Anna");  // Если найдет то вернет, если нет вернет null
+            Console.WriteLine(p.Name+p.GamesPlayed);
+
+            int num = entities.Players.Count(); //  Всего записей
+            int num2 = entities.Players.Count(x => x.GamesPlayed > 20); //  C условием
+            int sum = entities.Players.Sum(x => x.GamesPlayed.HasValue ? x.GamesPlayed.Value : 0);  //  Сумма, с проверкой на null
+            int mingp = entities.Players.Min(x => x.Id);  //  Min
+            int maxgp = entities.Players.Max(x => x.Id);  //  Max
+            double gpavr = entities.Players.Average(x => x.Id);   //  Avarage
+
+            int rowaffected = entities.Database.ExecuteSqlCommand("INSERT INTO Players VALUES ('Phill',44)");    //  чистый SQL запрос к базе
+            var query = entities.Database.SqlQuery<Player>("Select * FROM Players");    //  чистый SQL запрос к базе
+        }
+
             
         //------------------------------------------------------------------------
 
@@ -2125,14 +2173,8 @@ namespace _1_Conso1e
             */
             #endregion
             //------------------------------------------------------------------------
-            using (DbEntities entities = new DbEntities())  //  Блок для корректного закрытия соединения
-            {
-                List<Player> list = entities.Players.ToList();  //  В лист набиваем все поля таблицы
-                foreach (Player item in list)   //  Перебираем
-                {
-                    Console.WriteLine(item.Id + item.Name + item.GamesPlayed);
-                }
-            }
+
+
 
             //------------------------------------------------------------------------
             //  Main
