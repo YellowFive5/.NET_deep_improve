@@ -2041,7 +2041,17 @@ namespace _1_Conso1e
             var query = entities.Database.SqlQuery<Player>("Select * FROM Players");    //  чистый SQL запрос к базе
         }
 
-            
+        //  FLUENT API & DATA ANNOTATIONS   -   конфигурирование БД
+
+        DbEntities entities = new DbEntities(); //  Создали объект развертки БД
+        entities.Configuration.LazyLoadingEnabled = true;   // Lazy load. Отложенная загрузка, обращение к БД каждый раз при обращении к строке, не подходит для большого объема выборки
+
+        entities.Configuration.LazyLoadingEnabled = false;
+        entities.Players.Load();    //  Strict load.  Загрузка локально по требованию
+
+        Возможно организовать автоматическую инициализацию полей при создании базы
+        Возможно организовать миграцию при добавлении новой сущности в БД
+        
         //------------------------------------------------------------------------
 
         //------------------------------------------------------------------------
@@ -2168,13 +2178,13 @@ namespace _1_Conso1e
                 Console.WriteLine(state);
             }
 
+            Console.WriteLine(new Random (Guid.NewGuid().GetHashCode()).Next());  //  Качественный рандом
+
 
 
             */
             #endregion
             //------------------------------------------------------------------------
-
-
 
             //------------------------------------------------------------------------
             //  Main
