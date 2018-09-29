@@ -2406,6 +2406,15 @@ namespace _1_Conso1e
         5.  Replace conditions with polymorphism
         6.  Null objects introduce
 
+        Обобщения
+        1.  Pull up field   -   когда у наследиков одинаковые поля
+        2.  Pull up method  -   одинаковые методы
+        3.  Push down field/method
+        4.  Extract subclass    -   выделение наследника
+        5.  Extract superclass  -   выделение родителя
+        6.  Extract interface
+        7.  Replace inherit with delegation
+        8.  Replace delegarion with inherit
 
         */
         #endregion
