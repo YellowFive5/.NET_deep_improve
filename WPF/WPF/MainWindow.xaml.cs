@@ -14,6 +14,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.ComponentModel;
+using Microsoft.Win32;
 
 /*
     WPF
@@ -21,6 +23,21 @@ using System.Windows.Shapes;
 
     Спецсобытия самого приложения, которые можно переопределить находятся в App.xaml.cs
     Полный список событий в описании класса Application
+
+    Свойства-зависимости
+    Маршрутизация событий:
+    1.  Direct  -   прямое событие
+    2.  Тунелирование   -   Сверху вниз
+    3.  Пузырьковое -   Снизу вверх
+
+    Вложенные дескрипторы
+
+    Модальное окно  -   ShowDialog()
+    Немодальное обычное окно    -   Show();
+
+    В проекте есть файл настроек, с ним можно работать
+    Properties.Settings.Default.Someparam
+
 
 */
 namespace WPF
@@ -41,18 +58,23 @@ namespace WPF
 
             Random rc = new Random();   //  Рандомим цвета =)
             Polly.Fill = new SolidColorBrush(Color.FromRgb((byte)rc.Next(0, 255), (byte)rc.Next(0, 255), (byte)rc.Next(0, 255)));
+
+            if (Properties.Settings.Default.Someparam == true)
+                Properties.Settings.Default.Someparam = false;
+            else if (Properties.Settings.Default.Someparam == false)
+                Properties.Settings.Default.Someparam = true;
         }
 
         private void NewWindowButton_Click(object sender, RoutedEventArgs e)
         {
             NewWindow nw = new NewWindow(); //  Создаем новое окно
             nw.Owner = this;    //  Устанавливаем владельца
-            nw.Show();  //  Показываем
+            nw.ShowDialog();  //  Показываем
         }
 
         private void ThButton_Click(object sender, RoutedEventArgs e)   //  Кнопка для асинхронного потока
         {
-            MessageBox.Text = "Работем..."; //  Владелец данного объекта главный поток
+            TextBox.Text = "Работем..."; //  Владелец данного объекта главный поток
             Thread th = new Thread(SomeLongMethod); //  Кидаем в новый поток задачу
             th.Start();
         }
@@ -60,7 +82,25 @@ namespace WPF
         {
             Thread.Sleep(TimeSpan.FromSeconds(5));  // Спим 5 сек
             //  Для доступа другого потока к элементам главного потока нужно костилить 
-            MessageBox.Dispatcher.BeginInvoke(DispatcherPriority.Normal, (Action)delegate () { MessageBox.Text = "Не активно"; });  //  Через диспетчер задач потоков создаем анонимный делегат и работаем с объектом
+            TextBox.Dispatcher.BeginInvoke(DispatcherPriority.Normal, (Action)delegate () { TextBox.Text = "Не активно"; });  //  Через диспетчер задач потоков создаем анонимный делегат и работаем с объектом
+        }
+
+        private void Polly_MouseEnter(object sender, MouseEventArgs e)
+        {
+            if (Popup.IsOpen != true)
+                Popup.IsOpen = true;
+        }
+
+        private void Polly_MouseLeave(object sender, MouseEventArgs e)
+        {
+            Popup.IsOpen = false;
+        }
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            MessageBoxResult res = MessageBox.Show("Вы уверены, что хотите выйти?", "Exit", MessageBoxButton.YesNo);
+            if (res == MessageBoxResult.No)
+                e.Cancel = true;
         }
     }
 }
