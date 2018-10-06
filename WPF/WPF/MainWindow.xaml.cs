@@ -38,6 +38,12 @@ using Microsoft.Win32;
     В проекте есть файл настроек, с ним можно работать
     Properties.Settings.Default.Someparam
 
+    ICommand    -   Интерфайс для создания собственной команды
+
+    Статические и динамические ресурсы
+    Ресурс из App.xaml
+
+    Изменение языка через файлы ресурсов 
 
 */
 namespace WPF
@@ -59,10 +65,11 @@ namespace WPF
             Random rc = new Random();   //  Рандомим цвета =)
             Polly.Fill = new SolidColorBrush(Color.FromRgb((byte)rc.Next(0, 255), (byte)rc.Next(0, 255), (byte)rc.Next(0, 255)));
 
-            if (Properties.Settings.Default.Someparam == true)
-                Properties.Settings.Default.Someparam = false;
-            else if (Properties.Settings.Default.Someparam == false)
-                Properties.Settings.Default.Someparam = true;
+            //if (Settings1.Default.State == true)
+            //    Settings1.Default.State = false;
+            //else if (Settings1.Default.State == false)
+            //    Settings1.Default.State = true;
+            //Settings1.Default.Save();
         }
 
         private void NewWindowButton_Click(object sender, RoutedEventArgs e)
@@ -77,6 +84,9 @@ namespace WPF
             TextBox.Text = "Работем..."; //  Владелец данного объекта главный поток
             Thread th = new Thread(SomeLongMethod); //  Кидаем в новый поток задачу
             th.Start();
+
+            Button btn = sender as Button;
+            btn.Background =(ImageBrush)btn.TryFindResource("JpgBrush");   //  Работа с ресурсом из App.xaml
         }
         public void SomeLongMethod()    //  Долгий метод
         {

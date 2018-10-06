@@ -18,6 +18,6 @@ namespace WPF
         {
             Debug.WriteLine("OnStartup RUN");   //  Пишем в окно вывода диагностические сообщения
         }
-
+        
     }
 }

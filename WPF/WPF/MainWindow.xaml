@@ -3,9 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:p="clr-namespace:WPF.Properties"
         xmlns:local="clr-namespace:WPF"
-        mc:Ignorable="d"
         Title="{Binding Value, ElementName=Slider, StringFormat=\{0:F0\}}" Height="360" Width="760" ResizeMode="NoResize" Closing="Window_Closing">
     <!--Главное окно-->
     <Grid Margin="0,0,0,0">
@@ -21,7 +19,7 @@
                 Margin="0,257,54,34"
                 RenderTransformOrigin="0.5,0.5"
                 Click="Button_Click"
-                Background="#FFAF04FF"
+                Background="{x:Static SystemColors.WindowBrush}"
                 Grid.Column="1"
                 HorizontalAlignment="Right"
                 Width="361"
@@ -66,7 +64,7 @@
             HorizontalAlignment="Left"
             Margin="116,166,0,0"
             TextWrapping="Wrap"
-            Text="{Binding Source={x:Static p:Settings.Default}, Path=Someparam}"
+            Text="{x:Static local:Resource1.State}"
             VerticalAlignment="Top" Width="73"/>
     </Grid>
 </Window>

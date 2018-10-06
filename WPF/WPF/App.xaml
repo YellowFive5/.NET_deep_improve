@@ -4,6 +4,10 @@
              xmlns:local="clr-namespace:WPF"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <ImageBrush x:Key="JpgBrush"
+                    TileMode="Tile"
+                    ImageSource="betelgeize.jpg">
+        </ImageBrush>
+        
     </Application.Resources>
 </Application>

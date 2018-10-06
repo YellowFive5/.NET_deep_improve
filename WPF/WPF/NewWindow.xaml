@@ -5,8 +5,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WPF"
         mc:Ignorable="d"
-        Title="NewWindow" Height="291.624" Width="304.569">
+        Title="NewWindow"
+        Height="291.624"
+        Width="304.569"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown"
+        >
     <Grid Margin="0,0,0,0">
+        <Image HorizontalAlignment="Left" Height="181" Margin="63,101,0,0" VerticalAlignment="Top" Width="181" Source="betelgeize.jpg"/>
 
     </Grid>
 </Window>
