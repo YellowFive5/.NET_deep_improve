@@ -61,7 +61,7 @@ namespace WPF {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на OhYess.
+        ///   Ищет локализованную строку, похожую на No.
         /// </summary>
         public static string State {
             get {

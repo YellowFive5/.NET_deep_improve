@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WPF"
-        Title="{Binding Value, ElementName=Slider, StringFormat=\{0:F0\}}" Height="360" Width="760" ResizeMode="NoResize" Closing="Window_Closing">
+        Title="{Binding Value, ElementName=Slider, StringFormat=\{0:F0\}}" Height="523" Width="760" ResizeMode="NoResize" Closing="Window_Closing">
     <!--Главное окно-->
     <Grid Margin="0,0,0,0">
         <Grid.RowDefinitions>
@@ -16,7 +16,7 @@
         </Grid.ColumnDefinitions>
         <!--Контейнер компоновки-->
         <Button Content="Button"
-                Margin="0,257,54,34"
+                Margin="0,448,31,13"
                 RenderTransformOrigin="0.5,0.5"
                 Click="Button_Click"
                 Background="{x:Static SystemColors.WindowBrush}"
@@ -28,11 +28,11 @@
         <Polygon x:Name="Polly"  Points="10,10,300,30,50,150"
                 Grid.Column="1"
                 Fill="Azure"
-                Margin="0,42,23,127"
+                Margin="0,233,0,-64"
                 Stroke="Black"
                 RenderTransformOrigin="0.589,0.599"
                 HorizontalAlignment="Right"
-                Width="320" MouseEnter="Polly_MouseEnter" MouseLeave="Polly_MouseLeave"
+                Width="303" MouseEnter="Polly_MouseEnter" MouseLeave="Polly_MouseLeave"
                 />
         <TabControl HorizontalAlignment="Left" Height="309" Margin="0,10,0,0" VerticalAlignment="Top" Width="211" TabStripPlacement="Left">
             <TabItem Header="TabItem" Margin="0" x:Name="Tab1">
@@ -45,7 +45,7 @@
                 </Grid>
             </TabItem>
         </TabControl>
-        <Slider x:Name="Slider" HorizontalAlignment="Left" Margin="116,222,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.083,-1.722" Width="361" Grid.Column="1" Maximum="100" SmallChange="1"/>
+        <Slider x:Name="Slider" HorizontalAlignment="Left" Margin="139,413,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.083,-1.722" Width="361" Grid.Column="1" Maximum="100" SmallChange="1"/>
         <Popup x:Name="Popup"
                StaysOpen="True"
                Placement="Mouse"
@@ -62,9 +62,50 @@
         <TextBlock 
             Grid.Column="1"
             HorizontalAlignment="Left"
-            Margin="116,166,0,0"
+            Margin="139,357,0,0"
             TextWrapping="Wrap"
             Text="{x:Static local:Resource1.State}"
-            VerticalAlignment="Top" Width="73"/>
+            VerticalAlignment="Top"
+            Style="{StaticResource SomeStyle}"
+
+            />
+        <ComboBox x:Name="CB" Grid.Column="1" HorizontalAlignment="Left" Margin="28,54,0,0" VerticalAlignment="Top" Width="120" SelectedIndex="0">
+            <ComboBoxItem Content="Light"/>
+            <ComboBoxItem Content="Dark"/>
+        </ComboBox>
+        <TextBox Grid.Column="1"
+                 HorizontalAlignment="Left"
+                 Height="23" Margin="28,103,0,0"
+                 TextWrapping="Wrap"
+                 Text="{Binding Source={StaticResource SourceClass},Path=MyProperty}"
+                 VerticalAlignment="Top"
+                 Width="120"
+                 />
+        <Path Grid.Column="1"
+              Fill="Yellow"
+              HorizontalAlignment="Left"
+              Height="109"
+              Margin="202,54,0,0"
+              Stroke="Black"
+              VerticalAlignment="Top"
+              Width="108" Stretch="Fill">
+            <Path.Data>
+                <CombinedGeometry GeometryCombineMode="Xor">
+                    <CombinedGeometry.Geometry1>
+                        <RectangleGeometry Rect="50,50,50,50">
+                        </RectangleGeometry>
+                    </CombinedGeometry.Geometry1>
+                    <CombinedGeometry.Geometry2>
+                        <EllipseGeometry Center="100,50" RadiusX="30" RadiusY="40">
+
+                        </EllipseGeometry>
+                    </CombinedGeometry.Geometry2>
+
+                </CombinedGeometry>
+            </Path.Data>
+
+        </Path>
+        <Path Data="M1.8907841,87.006917 L1.9883477,87.007879 1.6659457,87.207487 C0.90138689,87.681066 0.5,87.931272 0.5,87.931272 z M59.5,52.771982 L59.5,88.546941 58.215355,88.490102 C42.724423,87.817091 25.275433,87.260236 5.6050728,87.043516 L1.9883477,87.007879 2.0157378,86.990919 C7.9645989,83.309652 30.733256,69.305639 58.000229,53.631952 z M179.20694,0.50002044 C201.25211,0.51827437 189.53799,12.784408 185.82199,44.482698 180.53128,89.61366 171.53442,94.168844 119.35206,91.730077 L118,91.665426 118,21.055437 118.33444,20.887426 C140.07159,10.043568 159.15805,1.994687 169.48027,1.0341398 173.2832,0.68025231 176.49963,0.49777704 179.20694,0.50002044 z" HorizontalAlignment="Left" Height="88.361" Margin="211,207,0,0" Stretch="Fill" Stroke="Black" VerticalAlignment="Top" Width="179" Grid.ColumnSpan="2"/>
+
     </Grid>
 </Window>

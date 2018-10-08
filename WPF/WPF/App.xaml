@@ -4,10 +4,28 @@
              xmlns:local="clr-namespace:WPF"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
+        <local:Source1 x:Key="SourceClass"></local:Source1>
+        
         <ImageBrush x:Key="JpgBrush"
                     TileMode="Tile"
                     ImageSource="betelgeize.jpg">
         </ImageBrush>
-        
+
+        <Style x:Key="SomeStyle">
+            <Setter Property="Control.FontSize" Value="24"/>
+            <Setter Property="Control.FontFamily" Value="Showcard Gothic"/>
+
+            <Style.Triggers>
+
+                <DataTrigger Binding="{Binding ElementName=CB, Path=SelectedIndex}" Value="0">
+                    <Setter Property="Control.Foreground" Value="LightYellow"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding ElementName=CB, Path=SelectedIndex}" Value="1">
+                    <Setter Property="Control.Foreground" Value="DarkOrange"/>
+                </DataTrigger>
+
+            </Style.Triggers>
+        </Style>
+
     </Application.Resources>
 </Application>
